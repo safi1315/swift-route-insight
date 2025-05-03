@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SendIcon } from 'lucide-react';
+import { SendIcon, Bot } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'bot';
@@ -14,9 +14,10 @@ interface Message {
 interface ChatBotProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  embedded?: boolean;
 }
 
-const ChatBot: React.FC<ChatBotProps> = ({ open, onOpenChange }) => {
+const ChatBot: React.FC<ChatBotProps> = ({ open, onOpenChange, embedded = false }) => {
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'bot', 
@@ -25,6 +26,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ open, onOpenChange }) => {
     }
   ]);
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -38,6 +40,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ open, onOpenChange }) => {
     
     setMessages([...messages, userMessage]);
     setInput('');
+    setIsTyping(true);
     
     // Simulate bot response
     setTimeout(() => {
@@ -58,7 +61,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ open, onOpenChange }) => {
       };
       
       setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+      setIsTyping(false);
+    }, 1500);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -67,50 +71,79 @@ const ChatBot: React.FC<ChatBotProps> = ({ open, onOpenChange }) => {
     }
   };
 
+  const renderChat = () => {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message, index) => (
+            <div 
+              key={index} 
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div 
+                className={`max-w-[80%] p-3 rounded-lg ${
+                  message.role === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                <p>{message.content}</p>
+                <span className="text-xs opacity-70 block mt-1">
+                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </div>
+          ))}
+          
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-muted text-muted-foreground max-w-[80%] p-3 rounded-lg">
+                <div className="flex space-x-2">
+                  <div className="h-2 w-2 rounded-full bg-current animate-bounce" />
+                  <div className="h-2 w-2 rounded-full bg-current animate-bounce delay-75" />
+                  <div className="h-2 w-2 rounded-full bg-current animate-bounce delay-150" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-4 border-t">
+          <div className="flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask about your fleet..."
+              className="flex-1"
+            />
+            <Button onClick={handleSend} size="icon">
+              <SendIcon className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // When embedded on a page (not in dialog)
+  if (embedded) {
+    return renderChat();
+  }
+
+  // When used as a dialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Fleet Assistant</DialogTitle>
+          <DialogTitle className="flex items-center">
+            <Bot className="h-5 w-5 mr-2" />
+            Fleet Assistant
+          </DialogTitle>
         </DialogHeader>
         
         <div className="flex flex-col h-[60vh] max-h-[500px]">
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.map((message, index) => (
-              <div 
-                key={index} 
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    message.role === 'user' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  <p>{message.content}</p>
-                  <span className="text-xs opacity-70 block mt-1">
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="p-4 border-t">
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about your fleet..."
-                className="flex-1"
-              />
-              <Button onClick={handleSend} size="icon">
-                <SendIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          {renderChat()}
         </div>
       </DialogContent>
     </Dialog>
