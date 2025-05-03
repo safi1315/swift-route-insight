@@ -7,16 +7,18 @@ import SpeedChart from '@/components/SpeedChart';
 import DriversTable from '@/components/DriversTable';
 import RegionFilter from '@/components/RegionFilter';
 import DriverMap from '@/components/DriverMap';
-import { generateMockDriverData, updateMockData, DriverData, regions } from '@/lib/mockData';
-import { RefreshCw } from 'lucide-react';
+import ChatBot from '@/components/ChatBot';
+import { RefreshCw, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { generateMockDriverData, updateMockData, DriverData, regions } from '@/lib/mockData';
 
 const Index = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>(regions[0]);
   const [driverData, setDriverData] = useState<DriverData[]>([]);
   const [filteredData, setFilteredData] = useState<DriverData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [chatOpen, setChatOpen] = useState<boolean>(false);
   const { toast } = useToast();
 
   // Initialize data
@@ -41,6 +43,20 @@ const Index = () => {
       setFilteredData(driverData.filter(driver => driver.region === selectedRegion));
     }
   }, [selectedRegion, driverData]);
+
+  // Set up chat toggle functionality
+  useEffect(() => {
+    const chatToggle = document.getElementById('chat-toggle');
+    if (chatToggle) {
+      chatToggle.addEventListener('click', () => setChatOpen(true));
+    }
+    
+    return () => {
+      if (chatToggle) {
+        chatToggle.removeEventListener('click', () => setChatOpen(true));
+      }
+    };
+  }, []);
 
   const handleRefresh = () => {
     setLoading(true);
@@ -86,6 +102,16 @@ const Index = () => {
                   <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                   Refresh
                 </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => setChatOpen(true)}
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Assistant
+                </Button>
                 
                 <SidebarTrigger />
               </div>
@@ -114,6 +140,9 @@ const Index = () => {
             )}
           </div>
         </div>
+
+        {/* ChatBot Dialog */}
+        <ChatBot open={chatOpen} onOpenChange={setChatOpen} />
       </div>
     </SidebarProvider>
   );

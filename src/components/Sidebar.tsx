@@ -12,11 +12,11 @@ import {
   SidebarMenuButton, 
   SidebarMenuItem 
 } from '@/components/ui/sidebar';
-import { Calendar, Globe, Settings, Map, RefreshCw, ChartBar } from 'lucide-react';
+import { Calendar, Globe, Settings, Map, RefreshCw, ChartBar, MessageSquare } from 'lucide-react';
 
 const MainSidebar = () => {
   return (
-    <Sidebar defaultCollapsed={false}>
+    <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center space-x-2">
           <Globe className="h-6 w-6" />
@@ -45,6 +45,12 @@ const MainSidebar = () => {
                 <SidebarMenuButton className="w-full">
                   <Calendar className="h-5 w-5" />
                   <span>Trip History</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton className="w-full" id="chat-toggle">
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Fleet Assistant</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
